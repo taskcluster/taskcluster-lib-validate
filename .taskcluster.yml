@@ -1,0 +1,35 @@
+version: 0
+metadata:
+  name: Generate taskcluster-lib-validate Docs
+  description: Generate and upload docs for this library.
+  owner: "{{ event.head.user.email }}"
+  source: "{{ event.head.repo.url }}"
+tasks:
+  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
+    workerType: "{{ taskcluster.docker.workerType }}"
+    extra:
+      github:
+        env: true
+        events:
+          - push
+        # TODO: Enable the following
+        # branches:
+        #   - master
+    payload:
+      maxRunTime: 3600
+      image: "quay.io/mrrrgn/ubuntu-ci:latest"
+      artifacts:
+        public:
+          type: directory
+          path: "/home/worker/repo/docs/taskcluster-lib-validate/"
+          expires: "{{#from_now}}1 month{{/from_now}}"
+      command:
+        - "/bin/bash"
+        - "-lc"
+        - "checkout-pull-request && npm install . && npm run docs"
+    metadata:
+      name: Generate taskcluster-lib-validate Docs
+      description: Generate and upload docs for this library.
+      owner: "{{ event.head.user.email }}"
+      source: "{{ event.head.repo.url }}"
+
