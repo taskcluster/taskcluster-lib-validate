@@ -57,7 +57,7 @@ Schema Validation Failed:
     * data should have required property 'scopes'
     * data should have required property 'payload'
     * data should have required property 'metadata'
-    * data should have required property 'tags' +9ms
+    * data should have required property 'tags'
 ```
 
 It is possible to specify constants that will be substituted into all of your schemas.

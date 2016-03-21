@@ -13,6 +13,12 @@ let publish = require('./publish');
 let render = require('./render');
 let rootdir = require('app-root-dir');
 
+/**
+ * TODO: Finish documeting this thing and also do the returned function
+ *
+ * @param {Object} options - Bleep bloop
+ * @returns {function}
+ * */
 async function validator (options) {
   let schemas = [];
   let ajv = Ajv({useDefaults: 'clone', format: 'full', verbose: true, allErrors: true});

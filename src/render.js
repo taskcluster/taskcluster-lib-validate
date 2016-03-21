@@ -1,10 +1,21 @@
 let debug = require('debug')('taskcluster-lib-validate');
 let _ = require('lodash');
 
-/** Render {$const: <key>} into JSON schema */
+/**
+ * Walk through objects and replace nodes that are
+ * simply an object that looks like `{$const: <key>}` with the
+ * value of `<key>` in the list of constants.
+ *
+ * @private
+ * @param {Object} schema - The object to replace within.
+ * @param {Object} constants - The keys and values that will be substituted in.
+ * @throws Will throw an error if any of the `<key>`'s are not defined in constants.
+ * @returns {Object} The schema with substituted keys
+ * */
 function render (schema, constants) {
-  // Replace val with constant, if it is an {$const: <key>} schema
+
   let substitute = (val) => {
+
     // Primitives and arrays shouldn't event be considered
     if (!(val instanceof Object) || val instanceof Array) {
       return undefined;
