@@ -17,16 +17,16 @@ tasks:
         #   - master
     payload:
       maxRunTime: 3600
-      image: "quay.io/mrrrgn/ubuntu-ci:0.0.1"
+      image: "node:4.4.0"
       artifacts:
         public:
           type: directory
-          path: "/home/worker/repo/docs/taskcluster-lib-validate/"
+          path: "/repo/docs/taskcluster-lib-validate/"
           expires: "2016-04-18T17:21:34.766Z"
       command:
         - "/bin/bash"
         - "-lc"
-        - "checkout-pull-request && npm install . && npm run docs"
+        - "git clone $GITHUB_HEAD_REPO_URL repo && cd repo && npm install . && npm run docs"
     metadata:
       name: Generate taskcluster-lib-validate Docs
       description: Generate and upload docs for this library.
