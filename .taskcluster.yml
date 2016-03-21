@@ -22,7 +22,7 @@ tasks:
         public:
           type: directory
           path: "/home/worker/repo/docs/taskcluster-lib-validate/"
-          expires: "{{#from_now}}1 month{{/from_now}}"
+          expires: "2016-04-18T17:21:34.766Z"
       command:
         - "/bin/bash"
         - "-lc"
