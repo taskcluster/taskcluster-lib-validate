@@ -15,8 +15,8 @@ tasks:
         # TODO: Enable the following
         # branches:
         #   - master
-    routes:
-      - index.garbage.bstack.docs.taskcluster-lib-validate
+    # routes:
+    #   - index.garbage.bstack.docs.taskcluster-lib-validate
     payload:
       maxRunTime: 3600
       image: "node:4.4.0"
