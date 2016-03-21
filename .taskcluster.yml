@@ -17,7 +17,7 @@ tasks:
         #   - master
     payload:
       maxRunTime: 3600
-      image: "quay.io/mrrrgn/ubuntu-ci"
+      image: "quay.io/mrrrgn/ubuntu-ci:0.0.1"
       artifacts:
         public:
           type: directory
