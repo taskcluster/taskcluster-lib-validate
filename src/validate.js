@@ -21,7 +21,7 @@ async function validator (options) {
     constants: rootdir.get() + '/schemas/constants.yml',
     folder: rootdir.get() + '/schemas',
     publish: process.env.NODE_ENV == 'production',
-    baseUrl: 'http://schemas.taskcluster.net/',
+    baseUrl: 'https://schemas.taskcluster.net/',
     bucket: 'schemas.taskcluster.net',
   });
 

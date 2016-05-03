@@ -27,7 +27,7 @@ validate = await validator({ constants: {'my-constant': 42} });
 // This checks whatever object you wish against whichever schema you wish
 let error = validate(
     doc,
-    'http://schemas.taskcluster.net/a-schema-you-wish-to-validate-against');
+    'https://schemas.taskcluster.net/a-schema-you-wish-to-validate-against');
 
 // Finally, ensure that there are no errors and continue however you see fit
 if (!error) {
@@ -87,7 +87,7 @@ that directory called `constants.yaml`. You may override these if desired.
 
     // What the root of all of your schemas is. This will make up the first part of
     // the key of your schemas. The default should be correct.
-    baseUrl: 'http://schema.taskcluster.net/'
+    baseUrl: 'https://schemas.taskcluster.net/'
 
     // Which s3 bucket to push schemas to. The default should be correct.
     bucket: 'schemas.taskcluster.net'
