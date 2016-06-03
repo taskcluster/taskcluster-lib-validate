@@ -121,9 +121,8 @@ suite('Valid Schema Tests', () => {
 
   test('schemas available', () => {
     let schemas = validate.schemas;
-    assert.equal(_.keys(schemas).length, 9);
-    assert(_.includes(_.keys(schemas), 'default-schema.json'));
-    assert.notEqual(schemas['default-schema.json'], '');
+    assert.equal(schemas.length, 9);
+    assert(_.includes(_.join(schemas, ''), 'default-schema.json'));
   });
 
 });
