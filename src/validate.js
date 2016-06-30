@@ -124,6 +124,7 @@ async function validator(options) {
   // Add a utility function that can be used to get all of the
   // schemas that have been loaded.
   validate.schemas = _.map(schemas, 'content');
+  validate.rawSchemas = schemas;
 
   return validate;
 };
