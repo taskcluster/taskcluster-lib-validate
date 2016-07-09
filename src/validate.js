@@ -12,10 +12,21 @@ let Promise = require('promise');
 let publish = require('./publish');
 let render = require('./render');
 let rootdir = require('app-root-dir');
+let request = require('request');
+
+function loadSchema(uri, callback) {
+  request(uri, (err, res, body) => {
+    if (err || res.statusCode >= 400) {
+      callback(err || new Error('Loading error: ' + res.statusCode));
+    } else {
+      callback(null, JSON.parse(body));
+    }
+  });
+}
 
 async function validator(options) {
   let schemas = [];
-  let ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
+  let ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true, loadSchema});
 
   let cfg = _.defaults(options, {
     constants: rootdir.get() + '/schemas/constants.yml',
@@ -71,7 +82,7 @@ async function validator(options) {
       if (!content) {
         throw new Error('Schema %s has invalid content!', name);
       }
-      schemas.push({name: name, content});
+      schemas.push({name: name, content, raw: schema});
     } catch (err) {
       debug('failed to load schema at %s', path.resolve(root, name));
       throw err;
@@ -100,6 +111,18 @@ async function validator(options) {
       );
     }));
   }
+
+  // Now we compile to load remote references and ensure
+  // that they're valid _now_ rather than when we try to use
+  // a schema later.
+  await Promise.all(schemas.map((entry) => {
+    debug('Compiling schema: ' + entry.name);
+    return ajv.compileAsync(entry.raw, (err, validate) => {
+      if (err) {
+        throw new Error(err);
+      }
+    });
+  }));
 
   let validate = (obj, id) => {
     id = id.replace(/#$/, '');
