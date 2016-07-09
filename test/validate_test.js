@@ -2,6 +2,8 @@ suite('Valid Schema Tests', () => {
   let assert = require('assert');
   let validator = require('../');
   let debug = require('debug')('test');
+  let nock = require('nock');
+  let fs = require('fs');
   let _ = require('lodash');
 
   let validate = null;
@@ -12,6 +14,19 @@ suite('Valid Schema Tests', () => {
       baseUrl: 'http://localhost:1203/',
       constants: {'my-constant': 42},
     });
+
+    let remoteRef = JSON.parse(fs.readFileSync(
+      'test/remote-schemas/test-remote-schema.json',
+      'utf-8'
+    ));
+
+    nock('http://localhost:1204')
+      .persist()
+      .get(/test-remote-schema.json/)
+      .reply(200, function(uri) {
+        debug('Responding to request for:', uri);
+        return remoteRef;
+      });
   });
 
   test('load json', () => {
@@ -40,6 +55,13 @@ suite('Valid Schema Tests', () => {
       reference: {value: 42},
       tid: new Date().toJSON(),
     }, 'http://localhost:1203/ref-test-schema#');
+    assert.equal(error, null);
+  });
+
+  test('remote $ref', () => {
+    let error = validate({
+      reference: {value: 11},
+    }, 'http://localhost:1203/remote-ref-test-schema#');
     assert.equal(error, null);
   });
 
@@ -121,7 +143,7 @@ suite('Valid Schema Tests', () => {
 
   test('schemas available', () => {
     let schemas = validate.schemas;
-    assert.equal(schemas.length, 9);
+    assert.equal(schemas.length, 10);
     assert(_.includes(_.join(schemas, ''), 'default-schema.json'));
   });
 

@@ -1,0 +1,15 @@
+{
+  "id":           "http://localhost:1204/test-remote-schema.json#",
+  "$schema":      "http://json-schema.org/draft-04/schema#",
+  "title":        "test remote json schema",
+  "type":         "object",
+  "properties": {
+    "value": {
+      "type":           "integer",
+      "minimum":        10,
+      "maximum":        12
+    }
+  },
+  "additionalProperties":   false,
+  "required": ["value"]
+}
