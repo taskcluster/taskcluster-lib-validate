@@ -24,6 +24,8 @@ async function validator(options) {
     publish: process.env.NODE_ENV == 'production',
     baseUrl: 'http://schemas.taskcluster.net/',
     bucket: 'schemas.taskcluster.net',
+    preview: process.env.PREVIEW_JSON_SCHEMA_FILES,
+    writeFile: process.env.WRITE_JSON_SCHEMA_FILES,
   });
 
   if (_.isString(cfg.constants)) {
