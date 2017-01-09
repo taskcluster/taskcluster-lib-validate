@@ -1,6 +1,7 @@
 let debug = require('debug')('taskcluster-lib-validate');
 let _ = require('lodash');
 let fs = require('fs');
+let rimraf = require('rimraf');
 let path = require('path');
 let walk = require('walk');
 let yaml = require('js-yaml');
@@ -87,10 +88,33 @@ async function validator(options) {
       s3Provider = new aws.S3(cfg.aws);
     }
     await Promise.all(_.map(schemas, (content, name) => {
-      return publish(
+      return publish.s3(
         s3Provider,
         cfg.bucket,
         cfg.prefix,
+        name,
+        content
+      );
+    }));
+  }
+
+  if (cfg.writeFile) {
+    debug('Writing schema to local file');
+    let dir = 'rendered_schemas';
+    rimraf.sync(dir);
+    fs.mkdirSync(dir);
+    await Promise.all(_.map(schemas, (content, name) => {
+      return publish.writeFile(
+        name,
+        content
+      );
+    }));
+  }
+
+  if (cfg.preview) {
+    debug('Writing schema to console');
+    await Promise.all(_.map(schemas, (content, name) => {
+      return publish.preview(
         name,
         content
       );
