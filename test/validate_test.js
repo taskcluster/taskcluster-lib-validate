@@ -75,6 +75,31 @@ suite('Valid Schema Tests', () => {
     assert.equal(json.optEmpty.length, 0);
   });
 
+  test('default values with push don\'t alter schema', () => {
+    let json = {};
+    let error = validate(
+        json,
+        'http://localhost:1203/default-array-obj-schema');
+    assert.equal(error, null);
+
+    // Here we'll push a value onto the default that was added
+    // to our json. If this works _incorrectly_, this will be part
+    // of the future defaults.
+    json.optArray.push('another-string');
+
+    let json2 = {};
+    error = validate(
+        json2,
+        'http://localhost:1203/default-array-obj-schema');
+    assert.equal(error, null);
+
+    // Now we can try to assert that the default hasn't been altered
+    // by our previous actions.
+    assert.equal(json2.optArray.length, 1);
+    assert.equal(json2.optArray[0], 'my-default-value');
+    assert.equal(json2.optEmpty.length, 0);
+  });
+
   test('no opts', async (done) => {
     let v = await validator();
     done(assert(v));
