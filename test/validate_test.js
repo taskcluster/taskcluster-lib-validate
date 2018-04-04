@@ -44,10 +44,11 @@ suite('Valid Schema Tests', () => {
   });
 
   test('default values are inserted', () => {
-    let json = {value: 42};
+    let json = {value: 42, value1: 50};
     let error = validate(
       json,
       'http://localhost:1203/default-schema');
+    console.log('..error', error);
     assert.equal(error, null);
     assert.equal(json.value, 42);
     assert.equal(json.optionalValue, 'my-default-value');
