@@ -134,7 +134,9 @@ async function validator(options) {
     ajv.validate(id, obj);
     if (ajv.errors) {
       _.forEach(ajv.errors, function(error) {
-        error.message += '\n' + JSON.stringify(error.params);
+        if (error.params['additionalProperty']) {
+          error.message += ':' + JSON.stringify(error.params['additionalProperty']);
+        }
       });
       return [
         '\nSchema Validation Failed!',
