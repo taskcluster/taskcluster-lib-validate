@@ -128,6 +128,6 @@ suite('Valid Schema Tests', () => {
       'http://localhost:1203/default-schema');
     debug(error);
     assert.notEqual(error, null);
-    assert(error.includes('data should NOT have additional properties:"unwanted_value"'));
+    assert(error.includes('data should NOT have additional properties: "unwanted_value"'));
   });
 });
