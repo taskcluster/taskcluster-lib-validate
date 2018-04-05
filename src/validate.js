@@ -135,7 +135,7 @@ async function validator(options) {
     if (ajv.errors) {
       _.forEach(ajv.errors, function(error) {
         if (error.params['additionalProperty']) {
-          error.message += ':' + JSON.stringify(error.params['additionalProperty']);
+          error.message += ': ' + JSON.stringify(error.params['additionalProperty']);
         }
       });
       return [
