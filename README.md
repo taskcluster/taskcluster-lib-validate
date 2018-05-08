@@ -27,7 +27,12 @@ You can view the tests to see more in-detail usage of most features of this libr
 let doc = {'what-is-this': 'it-is-the-json-you-wish-to-validate'};
 
 // Create a validator for you to use
-validate = await validator({ constants: {'my-constant': 42} });
+validate = await validator({
+  rootUrl: 'https://whatever.com',
+  serviceName: 'someservice',
+  version: 'v1',
+  constants: {'my-constant': 42},
+});
 
 // The loaded schemas are easily accessible
 console.log(validate.schemas)
@@ -114,19 +119,20 @@ that directory called `constants.yaml`. You may override these if desired.
     // Whether or not to write your generated schemas to the console.
     preview: false
 
-    // What the root of all of your schemas is. This will make up the first part of
-    // the key of your schemas. The default should be correct.
-    baseUrl: 'http://schema.taskcluster.net/'
+    // The root of the taskcluster cluster
+    rootUrl: 'http://schema.taskcluster.net/'
+
+    // The name of this service, e.g. auth, queue, index
+    serviceName: null
+
+    // The version of this service, i.e. v1
+    version: null
 
     // Which s3 bucket to push schemas to. The default should be correct.
     bucket: 'schemas.taskcluster.net'
 
     // Keys to upload to s3 if publishing. Unimportant otherwise.
     aws: null
-
-    // This will be the middle part of any schema key you end up constructing. You must
-    // set this for publishing to occur.
-    prefix: null
 
     // This is probably only used for testing. It allows using different libraries for s3.
     s3Provider: require('aws-sdk').S3

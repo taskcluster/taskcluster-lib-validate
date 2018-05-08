@@ -5,10 +5,10 @@ let rimraf = require('rimraf');
 let path = require('path');
 let walk = require('walk');
 let yaml = require('js-yaml');
-let urljoin = require('url-join');
 let assert = require('assert');
 let Ajv = require('ajv');
 let aws = require('aws-sdk');
+let tcUrl = require('taskcluster-lib-urls');
 let Promise = require('promise');
 let publish = require('./publish');
 let render = require('./render');
@@ -18,12 +18,15 @@ async function validator(options) {
   let schemas = {};
   let ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
 
+  assert(options.rootUrl, 'A `rootUrl` must be provided to taskcluster-lib-validate!');
+  assert(options.serviceName, 'A `serviceName` must be provided to taskcluster-lib-validate!');
+  assert(options.version, 'A `version` must be provided to taskcluster-lib-validate!');
+
   let defaultFolder = path.join(rootdir.get(), 'schemas');
   let cfg = _.defaults(options, {
     folder: defaultFolder,
     constants: path.join(options && options.folder || defaultFolder, 'constants.yml'),
     publish: process.env.NODE_ENV == 'production',
-    baseUrl: 'http://schemas.taskcluster.net/',
     bucket: 'schemas.taskcluster.net',
     preview: process.env.PREVIEW_JSON_SCHEMA_FILES,
     writeFile: process.env.WRITE_JSON_SCHEMA_FILES,
@@ -62,7 +65,7 @@ async function validator(options) {
       throw new Error('Schema ' + path.join(root, name) + ' attempts to set own id!');
     }
     name = name.replace(/\.ya?ml$/, '.json');
-    schema.id = urljoin(cfg.baseUrl, cfg.prefix, name) + '#';
+    schema.id = tcUrl.schema(cfg.rootUrl, cfg.serviceName, cfg.version, name) + '#';
 
     try {
       ajv.addSchema(schema);
@@ -82,9 +85,6 @@ async function validator(options) {
   if (cfg.publish) {
     debug('Publishing schemas');
     assert(cfg.aws, 'Can\'t publish without aws credentials.');
-    assert(cfg.prefix, 'Can\'t publish without prefix');
-    assert(cfg.prefix == '' || /.+\/$/.test(cfg.prefix),
-      'prefix must be empty or should end with a slash');
     let s3Provider = cfg.s3Provider;
     if (!s3Provider) {
       debug('Using default s3 client');
@@ -94,7 +94,7 @@ async function validator(options) {
       return publish.s3(
         s3Provider,
         cfg.bucket,
-        cfg.prefix,
+        `${cfg.serviceName}/${cfg.version}/`,
         name,
         content
       );

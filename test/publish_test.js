@@ -21,7 +21,9 @@ suite('Publish Tests', () => {
     validate = await validator({
       prefix: 'test/v1/',
       folder: 'test/publish-schemas',
-      baseUrl: 'http://localhost:1203/',
+      rootUrl: 'http://localhost:1203/',
+      serviceName: 'whatever',
+      version: 'v1',
       constants: {'my-constant': 42},
       aws: {
         accessKeyId: 'doesntmatter',

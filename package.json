@@ -28,7 +28,7 @@
     "lodash": "^4.5.1",
     "promise": "^8.0.1",
     "rimraf": "^2.6.2",
-    "url-join": "^2.0.2",
+    "taskcluster-lib-urls": "^0.0.3",
     "walk": "^2.3.9"
   },
   "devDependencies": {

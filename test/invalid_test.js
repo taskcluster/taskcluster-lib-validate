@@ -7,7 +7,9 @@ suite('Invalid Schema Tests', () => {
     try {
       let validate = await validator({
         folder: 'test/invalid-schemas',
-        baseUrl: 'http://localhost:1203/',
+        rootUrl: 'http://localhost:1203/',
+        serviceName: 'whatever',
+        version: 'v1',
       });
       return assert(false, 'Bad schema should\'ve thrown an exception!');
     } catch (e) {
