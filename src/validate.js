@@ -20,7 +20,6 @@ async function validator(options) {
 
   assert(options.rootUrl, 'A `rootUrl` must be provided to taskcluster-lib-validate!');
   assert(options.serviceName, 'A `serviceName` must be provided to taskcluster-lib-validate!');
-  assert(options.version, 'A `version` must be provided to taskcluster-lib-validate!');
 
   let defaultFolder = path.join(rootdir.get(), 'schemas');
   let cfg = _.defaults(options, {
@@ -47,7 +46,10 @@ async function validator(options) {
     }
   }
 
-  walk.walkSync(path.resolve(cfg.folder), {listeners: {name: (root, name) => {
+  walk.walkSync(path.resolve(cfg.folder), {listeners: {file: (root, stats) => {
+    const version = path.relative(cfg.folder, root);
+    let name = stats.name;
+
     let json = null;
     let data = fs.readFileSync(path.resolve(root, name), 'utf-8');
     if (/\.ya?ml$/.test(name) && name !== 'constants.yml') {
@@ -65,16 +67,16 @@ async function validator(options) {
       throw new Error('Schema ' + path.join(root, name) + ' attempts to set own id!');
     }
     name = name.replace(/\.ya?ml$/, '.json');
-    schema.id = tcUrl.schema(cfg.rootUrl, cfg.serviceName, cfg.version, name) + '#';
+    schema.id = tcUrl.schema(cfg.rootUrl, cfg.serviceName, version, name) + '#';
 
     try {
       ajv.addSchema(schema);
       debug('Loaded schema with id of "%s"', schema.id);
       let content = JSON.stringify(schema, undefined, 4);
       if (!content) {
-        throw new Error('Schema %s has invalid content!', name);
+        throw new Error('Schema %s has invalid content!', `${version}/${name}`);
       }
-      schemas[name] = content;
+      schemas[`${version}/${name}`] = content;
     } catch (err) {
       debug('failed to load schema at %s', path.resolve(root, name));
       throw err;
@@ -94,7 +96,7 @@ async function validator(options) {
       return publish.s3(
         s3Provider,
         cfg.bucket,
-        `${cfg.serviceName}/${cfg.version}/`,
+        `${cfg.serviceName}/`,
         name,
         content
       );
@@ -107,6 +109,14 @@ async function validator(options) {
     rimraf.sync(dir);
     fs.mkdirSync(dir);
     await Promise.all(_.map(schemas, (content, name) => {
+      const version = name.split('/')[0];
+      try {
+        fs.mkdirSync(path.join(dir, version));
+      } catch (err) {
+        if (err.code !== 'EEXIST') {
+          throw err;
+        }
+      }
       return publish.writeFile(
         name,
         content
