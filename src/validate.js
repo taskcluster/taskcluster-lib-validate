@@ -19,6 +19,7 @@ async function validator(options) {
   let schemas = {};
   let ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
 
+  assert(!options.prefix, 'The `prefix` option is no longer allowed');
   assert(!options.version, 'The `version` option is no longer allowed');
   assert(options.rootUrl, 'A `rootUrl` must be provided to taskcluster-lib-validate!');
   assert(options.serviceName, 'A `serviceName` must be provided to taskcluster-lib-validate!');

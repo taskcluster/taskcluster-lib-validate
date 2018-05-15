@@ -19,7 +19,6 @@ suite('Publish Tests', () => {
     s3 = awsMock.S3();
 
     validate = await validator({
-      prefix: 'test/v1/',
       folder: 'test/publish-schemas',
       rootUrl: 'http://localhost:1203/',
       serviceName: 'whatever',
