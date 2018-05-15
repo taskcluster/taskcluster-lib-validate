@@ -11,7 +11,6 @@ suite('Valid Schema Tests', () => {
       folder: 'test/schemas',
       rootUrl: 'http://localhost:1203/',
       serviceName: 'whatever',
-      version: 'v1',
       constants: {'my-constant': 42},
     });
   });
@@ -84,7 +83,6 @@ suite('Valid Schema Tests', () => {
         constants: 'test/schemas/constants.yml',
         rootUrl: 'http://localhost:1203/',
         serviceName: 'whatever',
-        version: 'v1',
       });
       let error = v(
         {value: 43},

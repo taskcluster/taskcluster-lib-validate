@@ -23,7 +23,6 @@ suite('Publish Tests', () => {
       folder: 'test/publish-schemas',
       rootUrl: 'http://localhost:1203/',
       serviceName: 'whatever',
-      version: 'v1',
       constants: {'my-constant': 42},
       aws: {
         accessKeyId: 'doesntmatter',

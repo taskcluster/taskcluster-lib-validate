@@ -13,11 +13,13 @@ let Promise = require('promise');
 let publish = require('./publish');
 let render = require('./render');
 let rootdir = require('app-root-dir');
+let mkdirp = require('mkdirp');
 
 async function validator(options) {
   let schemas = {};
   let ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
 
+  assert(!options.version, 'The `version` option is no longer allowed');
   assert(options.rootUrl, 'A `rootUrl` must be provided to taskcluster-lib-validate!');
   assert(options.serviceName, 'A `serviceName` must be provided to taskcluster-lib-validate!');
 
@@ -46,42 +48,48 @@ async function validator(options) {
     }
   }
 
+  let walkErr;
   walk.walkSync(path.resolve(cfg.folder), {listeners: {file: (root, stats) => {
-    const version = path.relative(cfg.folder, root);
-    let name = stats.name;
-
-    let json = null;
-    let data = fs.readFileSync(path.resolve(root, name), 'utf-8');
-    if (/\.ya?ml$/.test(name) && name !== 'constants.yml') {
-      json = yaml.safeLoad(data);
-    } else if (/\.json$/.test(name)) {
-      json = JSON.parse(data);
-    } else {
-      return;
-    }
-
-    let schema = render(json, cfg.constants);
-
-    if (schema.id) {
-      debug('Schema incorrectly attempts to set own id: %s', name);
-      throw new Error('Schema ' + path.join(root, name) + ' attempts to set own id!');
-    }
-    name = name.replace(/\.ya?ml$/, '.json');
-    schema.id = tcUrl.schema(cfg.rootUrl, cfg.serviceName, version, name) + '#';
-
     try {
+      let name = path.relative(cfg.folder, path.join(root, stats.name));
+
+      let json = null;
+      let data = fs.readFileSync(path.join(cfg.folder, name), 'utf-8');
+      if (/\.ya?ml$/.test(name) && name !== 'constants.yml') {
+        json = yaml.safeLoad(data);
+      } else if (/\.json$/.test(name)) {
+        json = JSON.parse(data);
+      } else {
+        debug('Ignoring file %s', name);
+        return;
+      }
+
+      let schema = render(json, cfg.constants);
+
+      if (schema.id) {
+        debug('Schema incorrectly attempts to set own id: %s', name);
+        throw new Error('Schema ' + path.join(root, name) + ' attempts to set own id!');
+      }
+      let jsonName = name.replace(/\.ya?ml$/, '.json');
+      schema.id = tcUrl.schema(cfg.rootUrl, cfg.serviceName, jsonName + '#');
+
       ajv.addSchema(schema);
       debug('Loaded schema with id of "%s"', schema.id);
       let content = JSON.stringify(schema, undefined, 4);
       if (!content) {
-        throw new Error('Schema %s has invalid content!', `${version}/${name}`);
+        throw new Error('Schema %s has invalid content!', name);
       }
-      schemas[`${version}/${name}`] = content;
+      schemas[jsonName] = content;
     } catch (err) {
-      debug('failed to load schema at %s', path.resolve(root, name));
-      throw err;
+      // walk swallows errors, so we must raise them ourselves
+      if (!walkErr) {
+        walkErr = err;
+      }
     }
   }}});
+  if (walkErr) {
+    throw walkErr;
+  }
   debug('finished walking tree of schemas');
 
   if (cfg.publish) {
@@ -107,21 +115,15 @@ async function validator(options) {
     debug('Writing schema to local file');
     let dir = 'rendered_schemas';
     rimraf.sync(dir);
-    fs.mkdirSync(dir);
     await Promise.all(_.map(schemas, (content, name) => {
-      const version = name.split('/')[0];
-      try {
-        fs.mkdirSync(path.join(dir, version));
-      } catch (err) {
-        if (err.code !== 'EEXIST') {
-          throw err;
-        }
-      }
+      const subdir = path.dirname(path.resolve(dir, name));
+      mkdirp.sync(path.join(dir, subdir));
       return publish.writeFile(
-        name,
+        path.resolve(dir, name),
         content
       );
     }));
+    rimraf.sync(dir);
   }
 
   if (cfg.preview) {
