@@ -151,6 +151,13 @@ Here are the options along with their default values:
     s3Provider: require('aws-sdk').S3
 ```
 
+### Debugging Options
+
+Set option `writeFile`, or `$WRITE_JSON_SCHEMA_FILES`, to write the fully
+rendered schema files out to `rendered_schemas/` in the current directory.
+Similarly, set option `preview`, or `$PREVIEW_JSON_SCHEMA_FILES`, to write the
+fully rendered schema files out to the console.
+
 Testing
 -------
 

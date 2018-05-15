@@ -29,8 +29,6 @@ suite('Publish Tests', () => {
         secretAccessKey: 'thesearentused',
       },
       publish: true,
-      preview: true,
-      writeFile: true,
       s3Provider: s3,
     });
   });

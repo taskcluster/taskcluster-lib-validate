@@ -115,15 +115,12 @@ async function validator(options) {
     debug('Writing schema to local file');
     let dir = 'rendered_schemas';
     rimraf.sync(dir);
-    await Promise.all(_.map(schemas, (content, name) => {
-      const subdir = path.dirname(path.resolve(dir, name));
-      mkdirp.sync(path.join(dir, subdir));
-      return publish.writeFile(
-        path.resolve(dir, name),
-        content
-      );
-    }));
-    rimraf.sync(dir);
+    _.forEach(schemas, (content, name) => {
+      const file = path.join(dir, name);
+      const subdir = path.dirname(file);
+      mkdirp.sync(subdir);
+      publish.writeFile(file, content);
+    });
   }
 
   if (cfg.preview) {
