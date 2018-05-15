@@ -21,23 +21,29 @@ This is tested on and should run on any of node `{5, 6, 7, 8}`.
 Usage
 -----
 
-You can view the tests to see more in-detail usage of most features of this library, but the general idea is as follows
+This library is used to manage schemas used within an application.
+Schemas are typically stored under `schemas/` in the repository root, with a directory per schema version.
+Schema files in the repository are `.yml` files, but will be published as `.json` files.
+The schema identifiers will be constructed based on the `rootUrl` supplied to the constructor.
 
 ```javascript
 let doc = {'what-is-this': 'it-is-the-json-you-wish-to-validate'};
 
 // Create a validator for you to use
 validate = await validator({
-  rootUrl: 'https://whatever.com',
+  rootUrl: 'https://taskcluster.example.com',
   serviceName: 'someservice',
-  version: 'v1',
   constants: {'my-constant': 42},
 });
 
 // The loaded schemas are easily accessible
 console.log(validate.schemas)
 // ↳ [{'id': 'first/schema', ...}, {'id': 'second/schema', ...}, ...]
+```
 
+### Validating
+
+```javascript
 // Check whatever object you wish against whichever schema you wish
 let error = validate(
   doc,
@@ -52,9 +58,9 @@ if (!error) {
 }
 ```
 
-The return value is either `null` if nothing is wrong, or an error message that tries to
-do a decent job of explaining what went wrong in plain, understandable language. An
-error message may look as follows:
+The return value from `validate` is either `null` if nothing is wrong, or an
+error message that tries to do a decent job of explaining what went wrong in
+plain, understandable language. An error message may look as follows:
 
 ```
 Schema Validation Failed:
@@ -72,7 +78,7 @@ Schema Validation Failed:
     * data should have required property 'scopes'
     * data should have required property 'payload'
     * data should have required property 'metadata'
-    * data should have required property 'tags' +9ms
+    * data should have required property 'tags'
 ```
 
 It is possible to specify constants that will be substituted into all of your schemas.
@@ -81,6 +87,8 @@ For examples of this behavior, you can view the tests.
 This library will automatically publish schemas to s3 in production if you so desire.
 
 All other functionality should be the same as [ajv itself](https://www.npmjs.com/package/ajv).
+
+### Remote References
 
 You may be tempted to use remote references and be able to validate your service's output
 against already defined responses defined in other services. However, this is not allowed by
@@ -102,7 +110,15 @@ This section explores some of the options a bit further. In general, your schema
 stored in the top-level of your project in `<root of app>/schemas/` and the constants in a yaml file in
 that directory called `constants.yaml`. You may override these if desired.
 
+Here are the options along with their default values:
+
 ```js
+    // The root of the taskcluster cluster
+    rootUrl: 'http://schema.taskcluster.net/'
+
+    // The name of this service, e.g. auth, queue, index
+    serviceName: null
+
     // These constants can be subsituted into all of your schemas
     // and can be passed as a path to a yaml file or an object.
     constants: '<root of app>/schemas/constants.yml' || { myDefault: 42 }
@@ -110,29 +126,26 @@ that directory called `constants.yaml`. You may override these if desired.
     // This folder should contain all of your schemas defined in either json or yaml.
     folder: '<root of app>/schemas'
 
+    // -- publishing
+    // NOTE: this only applies to `taskcluster.net`; other instances do this as part of the
+    // cluster build process.
+
     // Whether or not to push your generated schemas out to the world at large.
     publish: process.env.NODE_ENV == 'production'
+
+    // Which s3 bucket to push schemas to. The default should be correct.
+    bucket: 'schemas.taskcluster.net'
+
+    // Credentials to upload to s3 if publishing. Unimportant otherwise.
+    aws: null
+
+    // -- debugging and testing
 
     // Whether or not to write your generated schemas to local files.
     writeFile: false
 
     // Whether or not to write your generated schemas to the console.
     preview: false
-
-    // The root of the taskcluster cluster
-    rootUrl: 'http://schema.taskcluster.net/'
-
-    // The name of this service, e.g. auth, queue, index
-    serviceName: null
-
-    // The version of this service, i.e. v1
-    version: null
-
-    // Which s3 bucket to push schemas to. The default should be correct.
-    bucket: 'schemas.taskcluster.net'
-
-    // Keys to upload to s3 if publishing. Unimportant otherwise.
-    aws: null
 
     // This is probably only used for testing. It allows using different libraries for s3.
     s3Provider: require('aws-sdk').S3
