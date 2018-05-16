@@ -159,7 +159,7 @@ async function validator(options) {
     return null;
   };
 
-  // Add a utility function that can be used to get all of the
+  // Add a utility property that can be used to get all of the
   // schemas that have been loaded.
   validate.schemas = schemas;
 
