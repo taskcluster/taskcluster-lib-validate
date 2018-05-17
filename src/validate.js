@@ -8,7 +8,7 @@ let yaml = require('js-yaml');
 let assert = require('assert');
 let Ajv = require('ajv');
 let aws = require('aws-sdk');
-let tcUrl = require('taskcluster-lib-urls');
+let libUrls = require('taskcluster-lib-urls');
 let Promise = require('promise');
 let publish = require('./publish');
 let render = require('./render');
@@ -72,7 +72,7 @@ async function validator(options) {
         throw new Error('Schema ' + path.join(root, name) + ' attempts to set own id!');
       }
       let jsonName = name.replace(/\.ya?ml$/, '.json');
-      schema.id = tcUrl.schema(cfg.rootUrl, cfg.serviceName, jsonName + '#');
+      schema.id = libUrls.schema(cfg.rootUrl, cfg.serviceName, jsonName + '#');
 
       ajv.addSchema(schema);
       debug('Loaded schema with id of "%s"', schema.id);
