@@ -6,6 +6,7 @@ suite('Publish Tests', () => {
   let path = require('path');
   let rimraf = require('rimraf');
   let debug = require('debug')('test');
+  let libUrls = require('taskcluster-lib-urls');
 
   let s3 = null;
   let validate = null;
@@ -20,7 +21,7 @@ suite('Publish Tests', () => {
 
     validate = await validator({
       folder: 'test/publish-schemas',
-      rootUrl: 'http://localhost:1203/',
+      rootUrl: libUrls.testRootUrl(),
       serviceName: 'whatever',
       constants: {'my-constant': 42},
       aws: {

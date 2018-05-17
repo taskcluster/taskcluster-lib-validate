@@ -4,6 +4,7 @@ suite('Debugging Tests', () => {
   let rimraf = require('rimraf');
   let fs = require('fs');
   let intercept = require('intercept-stdout');
+  let libUrls = require('taskcluster-lib-urls');
 
   test('preview previews', async function() {
     let stdout = '';
@@ -14,7 +15,7 @@ suite('Debugging Tests', () => {
     try {
       await validator({
         folder: 'test/publish-schemas',
-        rootUrl: 'http://localhost:1203/',
+        rootUrl: libUrls.testRootUrl(),
         serviceName: 'whatever',
         constants: {'my-constant': 42},
         preview: true,
@@ -30,7 +31,7 @@ suite('Debugging Tests', () => {
     try {
       await validator({
         folder: 'test/publish-schemas',
-        rootUrl: 'http://localhost:1203/',
+        rootUrl: libUrls.testRootUrl(),
         serviceName: 'whatever',
         constants: {'my-constant': 42},
         writeFile: true,
