@@ -1,8 +1,11 @@
-let debug = require('debug')('taskcluster-lib-validate');
-let _ = require('lodash');
+const debug = require('debug')('taskcluster-lib-validate');
+const _ = require('lodash');
+const libUrls = require('taskcluster-lib-urls');
 
-/** Render {$const: <key>} into JSON schema */
-function render(schema, constants) {
+/** 
+ * Render {$const: <key>} into JSON schema and update $ref
+ */
+function render(schema, rootUrl, serviceName, constants) {
   // Replace val with constant, if it is an {$const: <key>} schema
   let substitute = (val) => {
     // Primitives and arrays shouldn't event be considered
@@ -10,8 +13,12 @@ function render(schema, constants) {
       return undefined;
     }
 
+    if (val.$ref) {
+      return {$ref: libUrls.schema(rootUrl, serviceName, val.$ref)};
+    }
+
     // Check if there is a key and only one key
-    let key = val['$const'];
+    let key = val.$const;
     if (key === undefined || typeof key != 'string' || _.keys(val).length != 1) {
       return undefined;
     }

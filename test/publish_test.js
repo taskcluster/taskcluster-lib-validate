@@ -1,6 +1,6 @@
 suite('Publish Tests', () => {
   let assert = require('assert');
-  let validator = require('../');
+  let SchemaSet = require('../');
   let awsMock = require('mock-aws-s3');
   let os = require('os');
   let path = require('path');
@@ -19,9 +19,8 @@ suite('Publish Tests', () => {
 
     s3 = awsMock.S3();
 
-    validate = await validator({
+    const schemaset = new SchemaSet({
       folder: 'test/publish-schemas',
-      rootUrl: libUrls.testRootUrl(),
       serviceName: 'whatever',
       constants: {'my-constant': 42},
       aws: {
@@ -31,6 +30,8 @@ suite('Publish Tests', () => {
       publish: true,
       s3Provider: s3,
     });
+
+    validate = schemaset.validator(libUrls.testRootUrl());
   });
 
   after(() => {

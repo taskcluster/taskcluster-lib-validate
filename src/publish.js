@@ -9,7 +9,7 @@ function s3(s3, bucket, prefix, name, content) {
     s3.putObject({
       Bucket: bucket,
       Key: prefix + name,
-      Body: content,
+      Body: JSON.stringify(content, null, 2),
       ContentType: 'application/json',
     }, (err, data) => {
       if (err) {
@@ -27,16 +27,7 @@ function s3(s3, bucket, prefix, name, content) {
  * mainly.
  */
 function writeFile(filename, content) {
-  let toPrint;
-  // We want something that's pretty-printable, so let's parse and reserialise
-  // the JSON in a nice way.  If this fails, let's just write out whatever was
-  // there.
-  try {
-    toPrint = JSON.stringify(JSON.parse(content), null, 2);
-  } catch (err) {
-    toPrint = content;
-  }
-  fs.writeFileSync(filename, toPrint);
+  fs.writeFileSync(filename, JSON.stringify(content, null, 2));
 }
 
 /**
@@ -44,19 +35,10 @@ function writeFile(filename, content) {
  * useful for debugging purposes
  */
 function preview(name, content) {
-  let toPrint;
-  // We want something that's pretty-printable, so let's parse and reserialise
-  // the JSON in a nice way.  If this fails, let's just write out whatever was
-  // there.
-  try {
-    toPrint = JSON.stringify(JSON.parse(content), null, 2);
-  } catch (err) {
-    toPrint = content;
-  }
   console.log('=======');
   console.log('JSON SCHEMA PREVIEW BEGIN: ' + name);
   console.log('=======');
-  console.log(toPrint);
+  console.log(JSON.stringify(content, null, 2));
   console.log('=======');
   console.log('JSON SCHEMA PREVIEW END: ' + name);
   return Promise.resolve();

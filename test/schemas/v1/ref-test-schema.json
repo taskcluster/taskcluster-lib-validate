@@ -4,7 +4,7 @@
     "type": "object",
     "properties": {
         "reference": {
-            "$ref": "https://tc-tests.localhost/schemas/whatever/v1/test-schema.json#"
+            "$ref": "v1/test-schema.json#"
         },
         "tid": {
             "type": "string",

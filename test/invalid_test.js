@@ -8,7 +8,6 @@ suite('Invalid Schema Tests', () => {
     try {
       let validate = await validator({
         folder: 'test/invalid-schemas',
-        rootUrl: libUrls.testRootUrl(),
         serviceName: 'whatever',
         version: 'v1',
       });

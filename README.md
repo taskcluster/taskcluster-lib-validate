@@ -16,7 +16,7 @@ View the changelog on the [releases page](https://github.com/taskcluster/taskclu
 Requirements
 ------------
 
-This is tested on and should run on any of node `{5, 6, 7, 8}`.
+This is tested on and should run on any of node `{8, 10}`.
 
 Usage
 -----
@@ -24,26 +24,32 @@ Usage
 This library is used to manage schemas used within an application.
 Schemas are typically stored under `schemas/` in the repository root, with a directory per schema version.
 Schema files in the repository are `.yml` files, but will be published as `.json` files.
-The schema identifiers will be constructed based on the `rootUrl` supplied to the constructor.
 
 ```javascript
-let doc = {'what-is-this': 'it-is-the-json-you-wish-to-validate'};
+const SchemaSet = require('taskcluster-lib-validate');
 
-// Create a validator for you to use
-validate = await validator({
-  rootUrl: 'https://taskcluster.example.com',
+const doc = {'what-is-this': 'it-is-the-json-you-wish-to-validate'};
+
+// Create a SchemaSet for you to use
+const schemaset = new SchemaSet({
   serviceName: 'someservice',
   constants: {'my-constant': 42},
 });
 
 // The loaded schemas are easily accessible
-console.log(validate.schemas)
-// ↳ [{'id': 'first/schema', ...}, {'id': 'second/schema', ...}, ...]
+console.log(schemaset.schemas)
+// ↳ [{'id': 'taskcluster:/schemas/someservice/first-schema.json#', ...}, ...]
 ```
+
+
 
 ### Validating
 
+You must get a `validator` out of a `SchemaSet` to use it.
+
 ```javascript
+
+const validate = schemaset.validator('https://some-taskcluster-root-url.com');
 // Check whatever object you wish against whichever schema you wish
 let error = validate(
   doc,
@@ -113,9 +119,6 @@ that directory called `constants.yaml`. You may override these if desired.
 Here are the options along with their default values:
 
 ```js
-    // The root of the taskcluster cluster
-    rootUrl: 'http://schema.taskcluster.net/'
-
     // The name of this service, e.g. auth, queue, index
     serviceName: null
 
