@@ -86,7 +86,8 @@ if (!error) {
 
 The return value from `validate` is either `null` if nothing is wrong, or an
 error message that tries to do a decent job of explaining what went wrong in
-plain, understandable language. An error message may look as follows:
+plain, understandable language.  Validation will refer to absolute schema id's
+in error messages. For example:
 
 ```
 Schema Validation Failed:

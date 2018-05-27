@@ -109,7 +109,7 @@ class SchemaSet {
 
     const ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
     ajv.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
-    _.forEach(this.abstractSchemas(), schema => {
+    _.forEach(this.absoluteSchemas(rootUrl), schema => {
       ajv.addSchema(schema);
     });
 
