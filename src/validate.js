@@ -10,7 +10,7 @@ const Ajv = require('ajv');
 const aws = require('aws-sdk');
 const libUrls = require('taskcluster-lib-urls');
 const publish = require('./publish');
-const {renderConstants} = require('./util');
+const {renderConstants, checkRefs} = require('./util');
 const rootdir = require('app-root-dir');
 
 const TASKCLUSTER_SCHEMA_SCHEME = 'taskcluster:';
@@ -72,6 +72,7 @@ class SchemaSet {
         this.rawSchemas[jsonName] = json;
 
         const schema = renderConstants(json, this.cfg.constants);
+        checkRefs(schema, this.cfg.serviceName);
 
         if (schema.id || schema.$id) {
           debug('Schema incorrectly attempts to set own id: %s', name);

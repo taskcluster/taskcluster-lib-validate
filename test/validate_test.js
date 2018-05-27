@@ -44,7 +44,6 @@ suite('Valid Schema Tests', () => {
     let error = validate({
       referenceWithDotDot: {value: 42},
       localReference: {value: 42},
-      rootedReference: {value: 42},
       tid: new Date().toJSON(),
     }, libUrls.schema(taskcluster_schema_scheme, 'whatever', '/v1/ref-test-schema#'));
     assert.equal(error, null);

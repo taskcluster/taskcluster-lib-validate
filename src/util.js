@@ -1,5 +1,6 @@
 const debug = require('debug')('taskcluster-lib-validate');
 const _ = require('lodash');
+const url = require('url');
 const libUrls = require('taskcluster-lib-urls');
 
 /** 
@@ -33,3 +34,36 @@ function renderConstants(schema, constants) {
 };
 
 exports.renderConstants = renderConstants;
+
+/**
+ * Check that all use of $ref in this schema is relative.  Note that this
+ * isn't foolproof: it will allow {$ref: '../../otherservice/v1/someschema.json'}.
+ * But this is enough to dissuade users from inter-service linking.
+ */
+const checkRefs = (schema, serviceName) => {
+  const check = val => {
+    if (_.isObject(val)) {
+      if (typeof val.$ref === 'string' && _.keys(val).length == 1) {
+        const ref = url.parse(val.$ref);
+        if (ref.hostname || ref.protocol) {
+          throw new Error(`Disallowed $ref '${ref}': absolute URIs are not allowed`);
+        }
+        if (ref.path.startsWith('/')) {
+          throw new Error(`Disallowed $ref '${ref}': rooted URIs (starting with /) are not allowed`);
+        }
+        return;
+      }
+
+      _.values(val).forEach(check);
+      return;
+    }
+
+    if (_.isArray(val)) {
+      val.forEach(check);
+      return;
+    }
+  };
+  check(schema);
+};
+
+exports.checkRefs = checkRefs;

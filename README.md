@@ -49,8 +49,8 @@ The draft standard specifies that this must be a URI and cannot be relative.
 Note that this id is not necessarily a URL; in other words, it may not be possible to fetch the schema at this location via HTTP.
 References within the schema, using the `$ref` keyword, can be relative URIs.
 
-This library requires that references are relative, and that they refer only to schemas in the same service.
-Thus `{$ref: '/schemas/thisservice/widget-description.json#'}` and `{$ref: 'widget-description.json#`} are allowed, but `{$ref: '/schemas/anotherservice/widget-description.json#'}` is not.
+This library requires that references are relative, and that their path not begin with `/`.
+Thus `{$ref: 'widget-description.json#'}` is allowed, but `{$ref: '/schemas/anotherservice/widget-description.json#'}` and `{$ref: 'https://schemas-r.us/widgets.json'}` are not.
 The rationale is that a service must be self-consistent, and any change to a schema requires a corresponding change to the code that handles the data.
 A schema from another service could change at any time, invalidating the code in this service.
 

@@ -9,9 +9,6 @@
         "localReference": {
             "$ref": "test-schema.json#"
         },
-        "rootedReference": {
-            "$ref": "/schemas/whatever/v1/test-schema.json#"
-        },
         "tid": {
             "type": "string",
             "format": "date-time"
@@ -21,7 +18,6 @@
     "required": [
         "referenceWithDotDot",
         "localReference",
-        "rootedReference",
         "tid"
     ]
 }
