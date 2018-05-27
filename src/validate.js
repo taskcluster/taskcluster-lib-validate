@@ -10,9 +10,8 @@ const Ajv = require('ajv');
 const aws = require('aws-sdk');
 const libUrls = require('taskcluster-lib-urls');
 const publish = require('./publish');
-const {renderConstants} = require('./render');
+const {renderConstants} = require('./util');
 const rootdir = require('app-root-dir');
-const mkdirp = require('mkdirp');
 
 const TASKCLUSTER_SCHEMA_SCHEME = 'taskcluster:';
 
@@ -110,46 +109,7 @@ class SchemaSet {
   }
 
   async validator(rootUrl) {
-    if (this.cfg.publish) {
-      debug('Publishing schemas');
-      assert(this.cfg.aws, 'Can\'t publish without aws credentials.');
-      let s3Provider = this.cfg.s3Provider;
-      if (!s3Provider) {
-        debug('Using default s3 client');
-        s3Provider = new aws.S3(this.cfg.aws);
-      }
-      await Promise.all(_.map(this.absoluteSchemas(rootUrl), (content, name) => {
-        return publish.s3(
-          s3Provider,
-          this.cfg.bucket,
-          `${this.cfg.serviceName}/`,
-          name,
-          content
-        );
-      }));
-    }
-
-    if (this.cfg.writeFile) {
-      debug('Writing schema to local file');
-      const dir = 'rendered_schemas';
-      _.forEach(this.schemas, (content, name) => {
-        const file = path.join(dir, name);
-        const subdir = path.dirname(file);
-        mkdirp.sync(subdir);
-        publish.writeFile(file, content);
-      });
-    }
-
-    if (this.cfg.preview) {
-      debug('Writing schema to console');
-      await Promise.all(_.map(this.schemas, (content, name) => {
-        return publish.preview(
-          name,
-          content
-        );
-      }));
-    }
-
+    await publish({cfg: this.cfg, schemaset: this, rootUrl});
     return (obj, id) => {
       id = id.replace(/#$/, '');
       id = id.replace(/\.ya?ml$/, '.json');

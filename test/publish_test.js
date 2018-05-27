@@ -9,7 +9,6 @@ suite('Publish Tests', () => {
   let libUrls = require('taskcluster-lib-urls');
 
   let s3 = null;
-  let validate = null;
   let mockdir = path.join(os.tmpdir(), 'tc-lib-validate', 'buckets');
 
   before(async () => {
@@ -31,7 +30,8 @@ suite('Publish Tests', () => {
       s3Provider: s3,
     });
 
-    validate = schemaset.validator(libUrls.testRootUrl());
+    // publishing occurs as a side-effect of creating a validator..
+    await schemaset.validator(libUrls.testRootUrl());
   });
 
   after(() => {
