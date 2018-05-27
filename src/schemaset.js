@@ -85,6 +85,12 @@ class SchemaSet {
     if (walkErr) {
       throw walkErr;
     }
+
+    // load the schema, just to let Ajv repot errors
+    const ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
+    ajv.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
+    _.forEach(this.abstractSchemas(), schema => ajv.addSchema(schema));
+
     debug('finished walking tree of schemas');
   }
 
