@@ -96,7 +96,7 @@ class SchemaSet {
     debug('finished walking tree of schemas');
   }
 
-  taskclusterSchemas() {
+  abstractSchemas() {
     return this.schemas;
   }
 

@@ -119,8 +119,8 @@ suite('Valid Schema Tests', () => {
     assert.equal(error, null);
   });
 
-  test('schemas available', () => {
-    let schemas = schemaset.taskclusterSchemas();
+  test('abstract schemas available', () => {
+    let schemas = schemaset.abstractSchemas();
     assert.equal(_.keys(schemas).length, 9);
     assert(_.includes(_.keys(schemas), 'v1/default-schema.json'));
     assert.equal(
