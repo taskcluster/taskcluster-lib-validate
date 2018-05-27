@@ -7,11 +7,10 @@ suite('Valid Schema Tests', () => {
 
   const rootUrl = libUrls.testRootUrl();
 
-  let schemaset = null;
   let validate = null;
 
   suiteSetup(async () => {
-    schemaset = new SchemaSet({
+    const schemaset = new SchemaSet({
       folder: 'test/schemas',
       serviceName: 'whatever',
       constants: {'my-constant': 42},
@@ -120,31 +119,18 @@ suite('Valid Schema Tests', () => {
     assert.equal(error, null);
   });
 
-  test('abstract schemas available', () => {
-    let schemas = schemaset.abstractSchemas();
-    assert.equal(_.keys(schemas).length, 9);
-    assert(_.includes(_.keys(schemas), 'v1/default-schema.json'));
-    assert.equal(
-      schemas['v1/default-schema.json'].$id,
-      'taskcluster:/schemas/whatever/v1/default-schema.json#'
-    );
-  });
-
-  test('absolute schemas available', () => {
-    let schemas = schemaset.absoluteSchemas(libUrls.testRootUrl());
-    assert.equal(_.keys(schemas).length, 9);
-    assert(_.includes(_.keys(schemas), 'v1/default-schema.json'));
-    assert.equal(
-      schemas['v1/default-schema.json'].$id,
-      'https://tc-tests.localhost/schemas/whatever/v1/default-schema.json#'
-    );
+  test('message specifies absolute schema URL', () => {
+    let error = validate(
+      {value: 42, unwanted_value: 1729},
+      libUrls.schema(rootUrl, 'whatever', '/v1/default-schema'));
+    assert.notEqual(error, null);
+    assert(error.includes(`Rejecting Schema: ${rootUrl}`), error);
   });
 
   test('message specifies unwanted additional property', () => {
     let error = validate(
       {value: 42, unwanted_value: 1729},
       libUrls.schema(rootUrl, 'whatever', '/v1/default-schema'));
-    debug(error);
     assert.notEqual(error, null);
     assert(error.includes('data should NOT have additional properties: "unwanted_value"'));
   });
