@@ -37,7 +37,7 @@ const schemaset = new SchemaSet({
 });
 
 // The loaded schemas are easily accessible
-console.log(schemaset.schemas)
+console.log(schemaset.abstractSchemas())
 // ↳ [{'id': 'taskcluster:/schemas/someservice/first-schema.json#', ...}, ...]
 ```
 

@@ -13,7 +13,7 @@ const publish = require('./publish');
 const {renderConstants, checkRefs} = require('./util');
 const rootdir = require('app-root-dir');
 
-const TASKCLUSTER_SCHEMA_SCHEME = 'taskcluster:';
+const ABSTRACT_SCHEMA_ROOT_URL = 'taskcluster:';
 
 class SchemaSet {
   constructor(options) {
@@ -21,11 +21,7 @@ class SchemaSet {
     assert(!options.version, 'The `version` option is no longer allowed');
     assert(options.serviceName, 'A `serviceName` must be provided to taskcluster-lib-validate!');
 
-    this.ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
-    this.ajv.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
-
-    this.schemas = {};
-    this.rawSchemas = {};
+    this._schemas = {};
 
     const defaultFolder = path.join(rootdir.get(), 'schemas');
     this.cfg = _.defaults(options, {
@@ -69,9 +65,8 @@ class SchemaSet {
         }
 
         const jsonName = name.replace(/\.ya?ml$/, '.json');
-        this.rawSchemas[jsonName] = json;
-
         const schema = renderConstants(json, this.cfg.constants);
+
         checkRefs(schema, this.cfg.serviceName);
 
         if (schema.id || schema.$id) {
@@ -79,10 +74,7 @@ class SchemaSet {
           throw new Error('Schema ' + path.join(root, name) + ' attempts to set own id!');
         }
 
-        // We use a `taskcluster:` scheme until rootUrl is known later
-        schema.$id = libUrls.schema(TASKCLUSTER_SCHEMA_SCHEME, this.cfg.serviceName, jsonName + '#');
-        this.ajv.addSchema(schema);
-        this.schemas[jsonName] = schema;
+        this._schemas[jsonName] = schema;
       } catch (err) {
         // walk swallows errors, so we must raise them ourselves
         if (!walkErr) {
@@ -96,21 +88,31 @@ class SchemaSet {
     debug('finished walking tree of schemas');
   }
 
+  _schemaWithIds(rootUrl) {
+    return _.mapValues(this._schemas, (schema, jsonName) => {
+      const newSchema = _.clone(schema);
+      newSchema.$id = libUrls.schema(rootUrl, this.cfg.serviceName, jsonName + '#');
+      return newSchema;
+    });
+  }
+
   abstractSchemas() {
-    return this.schemas;
+    return this._schemaWithIds(ABSTRACT_SCHEMA_ROOT_URL);
   }
 
   absoluteSchemas(rootUrl) {
-    return _.mapValues(this.rawSchemas, (schema, name) => {
-      schema.$id = libUrls.schema(rootUrl, this.cfg.serviceName, name + '#');
-      // Re-render to update refs to include rootUrl
-      schema = renderConstants(schema, this.cfg.constants);
-      return schema;
-    });
+    return this._schemaWithIds(rootUrl);
   }
 
   async validator(rootUrl) {
     await publish({cfg: this.cfg, schemaset: this, rootUrl});
+
+    const ajv = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
+    ajv.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
+    _.forEach(this.abstractSchemas(), schema => {
+      ajv.addSchema(schema);
+    });
+
     return (obj, id) => {
       id = id.replace(/#$/, '');
       id = id.replace(/\.ya?ml$/, '.json');
@@ -118,9 +120,9 @@ class SchemaSet {
         id += '.json';
       }
       id += '#';
-      this.ajv.validate(id, obj);
-      if (this.ajv.errors) {
-        _.forEach(this.ajv.errors, function(error) {
+      ajv.validate(id, obj);
+      if (ajv.errors) {
+        _.forEach(ajv.errors, function(error) {
           if (error.params['additionalProperty']) {
             error.message += ': ' + JSON.stringify(error.params['additionalProperty']);
           }
@@ -130,7 +132,7 @@ class SchemaSet {
           '\nRejecting Schema: ',
           id,
           '\nErrors:\n  * ',
-          this.ajv.errorsText(this.ajv.errors, {separator: '\n  * '}),
+          ajv.errorsText(ajv.errors, {separator: '\n  * '}),
         ].join('');
       }
       return null;
