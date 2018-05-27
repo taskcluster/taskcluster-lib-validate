@@ -41,11 +41,31 @@ console.log(schemaset.schemas)
 // ↳ [{'id': 'taskcluster:/schemas/someservice/first-schema.json#', ...}, ...]
 ```
 
+Schema References
+#################
 
+Each schema file is given an identifier when it is loaded (as seen in the `$id` property).
+The draft standard specifies that this must be a URI and cannot be relative.
+Note that this id is not necessarily a URL; in other words, it may not be possible to fetch the schema at this location via HTTP.
+References within the schema, using the `$ref` keyword, can be relative URIs.
+
+This library requires that references are relative, and that they refer only to schemas in the same service.
+Thus `{$ref: '/schemas/thisservice/widget-description.json#'}` and `{$ref: 'widget-description.json#`} are allowed, but `{$ref: '/schemas/anotherservice/widget-description.json#'}` is not.
+The rationale is that a service must be self-consistent, and any change to a schema requires a corresponding change to the code that handles the data.
+A schema from another service could change at any time, invalidating the code in this service.
+
+When initially loading the schema files, the `$id` is of the form `taskcluster:/schemas/<serviceName>/<filename>.json#`.
+The schemas have not yet been deployed at a specific root URL, and thus no fixed base location is known.
+Such schemas are referred to as "abstract schemas", and are used during the Taskcluster build process to generate documentation and client libraries.
+
+Once a `rootUrl` is supplied, by calling `schemaset.validator`, this library produces an "absolute schema" with `$id` values of the form `<rootUrl>/schemas/<serviceName>/<filename>.json#`.
+Not surprisingly, this is a URL, and is the one constructed by the [taskcluster-lib-urls](https://github.com/taskcluster/taskcluster-lib-urls) function `schema`.
+When the Taskcluster instance is running, the schema will be available via HTTP GET at that location.
 
 ### Validating
 
 You must get a `validator` out of a `SchemaSet` to use it.
+A validator is a function that will validate a document's adherence to a schema, given that schema's *absolute* id.
 
 ```javascript
 
@@ -53,7 +73,7 @@ const validate = schemaset.validator('https://some-taskcluster-root-url.com');
 // Check whatever object you wish against whichever schema you wish
 let error = validate(
   doc,
-  'http://schemas.taskcluster.net/a-schema-you-wish-to-validate-against'
+  'http://some-taskcluster-root-url.com/someservice/doc-definition.json'
 );
 
 // Finally, ensure that there are no errors and continue however you see fit
@@ -70,7 +90,7 @@ plain, understandable language. An error message may look as follows:
 
 ```
 Schema Validation Failed:
-  Rejecting Schema: http://localhost:1203/big-schema.json
+  Rejecting Schema: https://some-taskcluster-root-url.com/someservice/doc-definition.json
   Errors:
     * data should have required property 'provisionerId'
     * data should have required property 'workerType'
@@ -87,27 +107,29 @@ Schema Validation Failed:
     * data should have required property 'tags'
 ```
 
-It is possible to specify constants that will be substituted into all of your schemas.
-For examples of this behavior, you can view the tests.
-
-This library will automatically publish schemas to s3 in production if you so desire.
-
 All other functionality should be the same as [ajv itself](https://www.npmjs.com/package/ajv).
 
-### Remote References
+### Constants
 
-You may be tempted to use remote references and be able to validate your service's output
-against already defined responses defined in other services. However, this is not allowed by
-this library and is not planned to be supported.
+It is possible to specify constants that will be substituted into all of your schemas.
 
-Our reasoning is that if you're interacting with the returned results of another service,
-the results have already been validated by the output validation of that service. If you wish
-to pass this on to your consumers unaltered, you can either mark it as a generic object with
-no validation in your output schema (not recommended) or specify how you expect the output to
-be (which can just be copied from the other service) and then modify the data you return to
-ensure that only those fields you expect are passed on. This will ensure that as services are
-modified and updated there will not be unexpected results for downstream dependencies.
+Define constants in `constants.yml`, and refer to them with `{$const: constant-name}`.
+For example:
 
+```yaml
+# constants.yml
+smallest: 43
+```
+
+```yaml
+# some schema file
+type: integer
+minValue: {$const: smallest}
+```
+
+### Publishing
+
+This library will automatically publish schemas to s3 in production, for backward-compatibility with the `taskcluster.net` deployment.
 
 Options and Defaults
 --------------------
