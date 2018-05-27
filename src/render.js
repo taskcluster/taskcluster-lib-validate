@@ -5,16 +5,12 @@ const libUrls = require('taskcluster-lib-urls');
 /** 
  * Render {$const: <key>} into JSON schema and update $ref
  */
-function render(schema, rootUrl, serviceName, constants) {
+function renderConstants(schema, constants) {
   // Replace val with constant, if it is an {$const: <key>} schema
   let substitute = (val) => {
     // Primitives and arrays shouldn't event be considered
     if (!(val instanceof Object) || val instanceof Array) {
       return undefined;
-    }
-
-    if (val.$ref) {
-      return {$ref: libUrls.schema(rootUrl, serviceName, val.$ref)};
     }
 
     // Check if there is a key and only one key
@@ -36,4 +32,4 @@ function render(schema, rootUrl, serviceName, constants) {
   return _.cloneDeepWith(schema, substitute);
 };
 
-module.exports = render;
+exports.renderConstants = renderConstants;

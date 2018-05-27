@@ -3,8 +3,14 @@
     "title": "test json schema",
     "type": "object",
     "properties": {
-        "reference": {
-            "$ref": "v1/test-schema.json#"
+        "referenceWithDotDot": {
+            "$ref": "../v1/test-schema.json#"
+        },
+        "localReference": {
+            "$ref": "test-schema.json#"
+        },
+        "rootedReference": {
+            "$ref": "/schemas/whatever/v1/test-schema.json#"
         },
         "tid": {
             "type": "string",
@@ -13,7 +19,9 @@
     },
     "additionalProperties": false,
     "required": [
-        "reference",
+        "referenceWithDotDot",
+        "localReference",
+        "rootedReference",
         "tid"
     ]
 }
